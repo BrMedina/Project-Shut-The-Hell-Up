@@ -194,6 +194,7 @@ if __name__ == "__main__":
         app.update_meter()
         root.mainloop()
     except Exception:
-        import traceback
-        traceback.print_exc()
-        input("\nPress Enter to exit...")
+        import traceback, os
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "error_log.txt")
+        with open(log_path, "w") as f:
+            traceback.print_exc(file=f)
