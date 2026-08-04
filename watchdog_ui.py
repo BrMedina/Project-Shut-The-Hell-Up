@@ -130,11 +130,47 @@ class MicWatchdog:
 
     def get_input_devices(self):
         devices = []
+        seen_names = set()
         try:
             all_devices = sd.query_devices()
             for i, d in enumerate(all_devices):
-                if d.get("max_input_channels", 0) > 0:
-                    devices.append({"index": i, "name": d["name"], "label": f"{i}: {d['name']}"})
+                if d.get("max_input_channels", 0) <= 0:
+                    continue
+
+                name = d.get("name", "").strip()
+                normalized_name = name.lower()
+
+                exclude_patterns = [
+                    "sound mapper",
+                    "primary sound",
+                    "output",
+                    "speaker",
+                    "headphone",
+                    "line out",
+                    "cable in 16ch",
+                ]
+                if any(pattern in normalized_name for pattern in exclude_patterns):
+                    continue
+
+                include_patterns = [
+                    "microphone",
+                    "mic",
+                    "voicemod",
+                    "input",
+                ]
+                if not any(pattern in normalized_name for pattern in include_patterns):
+                    continue
+
+                simplified_name = normalized_name.replace("(r)", "").replace("realtek", "").replace("audio", "").replace("with sst", "").strip()
+                if simplified_name in seen_names:
+                    continue
+                seen_names.add(simplified_name)
+
+                devices.append({
+                    "index": i,
+                    "name": name,
+                    "label": f"{i}: {name}"
+                })
         except Exception as e:
             print(f"Error querying devices: {e}")
         return devices
