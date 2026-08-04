@@ -15,7 +15,7 @@ BLOCK_SIZE = 1024
 
 class MicWatchdog:
     def __init__(self, root):
-        
+
         self.root = root
         root.title(" ")
         root.geometry("620x520")
@@ -31,11 +31,11 @@ class MicWatchdog:
         right = tk.Frame(root)
         right.pack(side="right", fill="y", padx=5, pady=15)
 
-        tk.Label(root, text="Select Microphone").pack(pady=(15, 0))
+        tk.Label(left, text="Select Microphone").pack(pady=(15, 0))
         self.devices = self.get_input_devices()
         self.device_var = tk.StringVar()
         self.device_dropdown = ttk.Combobox(
-            root, textvariable=self.device_var,
+            left, textvariable=self.device_var,
             values=[d["label"] for d in self.devices],
             state="readonly", width=45
         )
@@ -43,37 +43,37 @@ class MicWatchdog:
             self.device_dropdown.current(0)
         self.device_dropdown.pack(pady=5)
 
-        tk.Button(root, text="Refresh Devices", command=self.refresh_devices).pack()
+        tk.Button(left, text="Refresh Devices", command=self.refresh_devices).pack()
 
         # Threshold slider
-        tk.Label(root, text="Trigger Threshold (dB)").pack(pady=(15, 0))
+        tk.Label(left, text="Trigger Threshold (dB)").pack(pady=(15, 0))
         self.threshold_var = tk.DoubleVar(value=-10)
         self.threshold_slider = tk.Scale(
-            root, from_=-60, to=0, orient="horizontal",
+            left, from_=-60, to=0, orient="horizontal",
             variable=self.threshold_var, length=350
         )
         self.threshold_slider.pack()
 
         # Cooldown
-        tk.Label(root, text="Cooldown (seconds)").pack(pady=(10, 0))
+        tk.Label(left, text="Cooldown (seconds)").pack(pady=(10, 0))
         self.cooldown_var = tk.DoubleVar(value=5)
-        tk.Scale(root, from_=1, to=30, orient="horizontal",
+        tk.Scale(left, from_=1, to=30, orient="horizontal",
         variable=self.cooldown_var, length=350).pack()
 
         # Target process
-        tk.Label(root, text="Target process (e.g. notepad.exe)").pack(pady=(10, 0))
+        tk.Label(left, text="Target process (e.g. notepad.exe)").pack(pady=(10, 0))
         self.target_var = tk.StringVar(value="RobloxPlayerBeta.exe")
-        tk.Entry(root, textvariable=self.target_var, width=40).pack()
+        tk.Entry(left, textvariable=self.target_var, width=40).pack()
 
         # Live meter
-        tk.Label(root, text="Live Mic Level").pack(pady=(15, 0))
-        self.meter = ttk.Progressbar(root, length=350, maximum=60)
+        tk.Label(left, text="Live Mic Level").pack(pady=(15, 0))
+        self.meter = ttk.Progressbar(left, length=350, maximum=60)
         self.meter.pack(pady=5)
-        self.db_label = tk.Label(root, text="-- dB")
+        self.db_label = tk.Label(left, text="-- dB")
         self.db_label.pack()
 
         # Start/Stop
-        self.toggle_btn = tk.Button(root, text="Start Listening", command=self.toggle, width=20)
+        self.toggle_btn = tk.Button(left, text="Start Listening", command=self.toggle, width=20)
         self.toggle_btn.pack(pady=15)
 
         # Log
