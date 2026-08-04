@@ -17,14 +17,19 @@ class MicWatchdog:
     def __init__(self, root):
         
         self.root = root
-        root.title("Mic Loudness Watchdog")
-        root.geometry("420x460")
+        root.title(" ")
+        root.geometry("620x520")
         root.resizable(False, False)
 
         self.running = False
         self.last_trigger = 0
         self.stream = None
         self.current_db = -999
+
+        left = tk.Frame(root)
+        left.pack(side="left", fill="both", expand=True, padx=5)
+        right = tk.Frame(root)
+        right.pack(side="right", fill="y", padx=5, pady=15)
 
         tk.Label(root, text="Select Microphone").pack(pady=(15, 0))
         self.devices = self.get_input_devices()
@@ -72,11 +77,21 @@ class MicWatchdog:
         self.toggle_btn.pack(pady=15)
 
         # Log
-        self.log = tk.Text(root, height=6, width=48, state="disabled")
-        self.log.pack()
+        tk.Label(right, text="Log").pack()
+        self.log = tk.Text(right, height=25, width=28, state="disabled")
+        self.log.pack(fill="y", expand=True)
 
         root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
         self.root.after(300, self.auto_start)
+        self.center_window()
+
+
+    def center_window(self):
+        self.root.update_idletasks()
+        w, h = self.root.winfo_width(), self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() - w) // 2
+        y = (self.root.winfo_screenheight() - h) // 2
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
 
     def log_msg(self, msg):
         self.log.config(state="normal")
