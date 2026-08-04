@@ -5,12 +5,17 @@ import numpy as np
 import subprocess
 import threading
 import time
+import pystray
+import os, traceback
+from PIL import Image, ImageDraw
+from tkinter import messagebox
 
 SAMPLE_RATE = 44100
 BLOCK_SIZE = 1024
 
 class MicWatchdog:
     def __init__(self, root):
+        
         self.root = root
         root.title("Mic Loudness Watchdog")
         root.geometry("420x460")
@@ -48,12 +53,15 @@ class MicWatchdog:
         tk.Label(root, text="Cooldown (seconds)").pack(pady=(10, 0))
         self.cooldown_var = tk.DoubleVar(value=5)
         tk.Scale(root, from_=1, to=30, orient="horizontal",
-                 variable=self.cooldown_var, length=350).pack()
+        variable=self.cooldown_var, length=350).pack()
 
         # Target process
         tk.Label(root, text="Target process (e.g. notepad.exe)").pack(pady=(10, 0))
-        self.target_var = tk.StringVar(value="notepad.exe")
+        self.target_var = tk.StringVar(value="RobloxPlayerBeta.exe")
         tk.Entry(root, textvariable=self.target_var, width=40).pack()
+        self.target_var = tk.StringVar(value="")
+        tk.Entry(root, textvariable=self.target_var, width=40).pack()
+        
 
         # Live meter
         tk.Label(root, text="Live Mic Level").pack(pady=(15, 0))
@@ -69,6 +77,9 @@ class MicWatchdog:
         # Log
         self.log = tk.Text(root, height=6, width=48, state="disabled")
         self.log.pack()
+
+        root.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
+        self.root.after(300, self.auto_start)
 
     def log_msg(self, msg):
         self.log.config(state="normal")
@@ -95,8 +106,12 @@ class MicWatchdog:
         target = self.target_var.get().strip()
         self.log_msg(f"Threshold hit ({db:.1f} dB) — closing {target}")
         try:
-            subprocess.run(["taskkill", "/IM", target, "/F"],
-                            capture_output=True)
+            subprocess.run(
+                ["taskkill", "/IM", target, "/F"],
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            messagebox.showinfo("Hi Zaren", f"Maingay ka masyado.")
         except Exception as e:
             self.log_msg(f"Error: {e}")
 
@@ -106,6 +121,10 @@ class MicWatchdog:
             self.meter["value"] = display_db + 60  # shift range to 0-60
             self.db_label.config(text=f"{self.current_db:.1f} dB")
         self.root.after(100, self.update_meter)
+
+    def auto_start(self):
+        if not self.running:
+            self.toggle()
 
     def toggle(self):
         if not self.running:
@@ -186,6 +205,30 @@ class MicWatchdog:
         if idx == -1 or not self.devices:
             return None
         return self.devices[idx]["index"]
+
+    def create_tray_icon(self):
+        img = Image.new("RGB", (64, 64), "black")
+        d = ImageDraw.Draw(img)
+        d.ellipse((16, 16, 48, 48), fill="white")
+        menu = pystray.Menu(
+            pystray.MenuItem("Show", self.show_window),
+            pystray.MenuItem("Quit", self.quit_app)
+        )
+        self.tray_icon = pystray.Icon("MicWatchdog", img, "Mic Watchdog", menu)
+
+    def hide_to_tray(self):
+        self.root.withdraw()
+        self.create_tray_icon()
+        import threading
+        threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def show_window(self, icon=None, item=None):
+        self.tray_icon.stop()
+        self.root.after(0, self.root.deiconify)
+
+    def quit_app(self, icon=None, item=None):
+        self.tray_icon.stop()
+        self.root.after(0, self.root.destroy)
 
 if __name__ == "__main__":
     try:

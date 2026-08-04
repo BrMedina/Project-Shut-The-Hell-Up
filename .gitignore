@@ -1,3 +1,5 @@
 \build
 \dist
 MicWatchdog.spec
+\.venv
+\__pycache__
