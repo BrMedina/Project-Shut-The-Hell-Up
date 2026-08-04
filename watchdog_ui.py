@@ -59,9 +59,6 @@ class MicWatchdog:
         tk.Label(root, text="Target process (e.g. notepad.exe)").pack(pady=(10, 0))
         self.target_var = tk.StringVar(value="RobloxPlayerBeta.exe")
         tk.Entry(root, textvariable=self.target_var, width=40).pack()
-        self.target_var = tk.StringVar(value="")
-        tk.Entry(root, textvariable=self.target_var, width=40).pack()
-        
 
         # Live meter
         tk.Label(root, text="Live Mic Level").pack(pady=(15, 0))
@@ -219,7 +216,6 @@ class MicWatchdog:
     def hide_to_tray(self):
         self.root.withdraw()
         self.create_tray_icon()
-        import threading
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
 
     def show_window(self, icon=None, item=None):
@@ -237,7 +233,6 @@ if __name__ == "__main__":
         app.update_meter()
         root.mainloop()
     except Exception:
-        import traceback, os
         log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "error_log.txt")
         with open(log_path, "w") as f:
             traceback.print_exc(file=f)
