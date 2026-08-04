@@ -13,13 +13,27 @@ class MicWatchdog:
     def __init__(self, root):
         self.root = root
         root.title("Mic Loudness Watchdog")
-        root.geometry("420x400")
+        root.geometry("420x460")
         root.resizable(False, False)
 
         self.running = False
         self.last_trigger = 0
         self.stream = None
         self.current_db = -999
+
+        tk.Label(root, text="Select Microphone").pack(pady=(15, 0))
+        self.devices = self.get_input_devices()
+        self.device_var = tk.StringVar()
+        self.device_dropdown = ttk.Combobox(
+            root, textvariable=self.device_var,
+            values=[d["label"] for d in self.devices],
+            state="readonly", width=45
+        )
+        if self.devices:
+            self.device_dropdown.current(0)
+        self.device_dropdown.pack(pady=5)
+
+        tk.Button(root, text="Refresh Devices", command=self.refresh_devices).pack()
 
         # Threshold slider
         tk.Label(root, text="Trigger Threshold (dB)").pack(pady=(15, 0))
@@ -98,6 +112,7 @@ class MicWatchdog:
             self.running = True
             self.toggle_btn.config(text="Stop Listening")
             self.stream = sd.InputStream(
+                device=self.get_selected_device_index(),
                 callback=self.audio_callback,
                 channels=1,
                 samplerate=SAMPLE_RATE,
@@ -112,6 +127,29 @@ class MicWatchdog:
                 self.stream.stop()
                 self.stream.close()
             self.log_msg("Stopped listening")
+
+    def get_input_devices(self):
+        devices = []
+        try:
+            all_devices = sd.query_devices()
+            for i, d in enumerate(all_devices):
+                if d.get("max_input_channels", 0) > 0:
+                    devices.append({"index": i, "name": d["name"], "label": f"{i}: {d['name']}"})
+        except Exception as e:
+            print(f"Error querying devices: {e}")
+        return devices
+
+    def refresh_devices(self):
+        self.devices = self.get_input_devices()
+        self.device_dropdown["values"] = [d["label"] for d in self.devices]
+        if self.devices:
+            self.device_dropdown.current(0)
+
+    def get_selected_device_index(self):
+        idx = self.device_dropdown.current()
+        if idx == -1 or not self.devices:
+            return None
+        return self.devices[idx]["index"]
 
 if __name__ == "__main__":
     try:
